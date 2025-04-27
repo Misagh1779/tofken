@@ -26,7 +26,8 @@ bot.on('message', (msg) => {
     }
 if(!tarif) {
     bot.sendMessage(chatId,"چی چی بیه؟");
+}
 
-}});
+});
 
   console.log("bot is started");
