@@ -7,5 +7,12 @@ const token = '7892178079:AAFpdGBprjs378rXa5KK1swzfsxYj0ypy18';
 const bot = new TelegramBot(token, {polling: true});
 
 bot.on('message', (msg) => {
-   console.log (msg)
+    const chatId = msg.chat.id;
+
+    const userText=msg.text;
+    if(userText == '/start'){
+        bot.sendMessage(chatId,"!به توفکن خوش اومدی خوشتیپ")
+    }
   });
+
+  console.log("bot is started");
