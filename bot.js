@@ -11,17 +11,18 @@ const regex = /^\/start$/
 const bot = new TelegramBot(token, {polling: true});
 
 bot.on('message', (msg) => {
+    let tarif=false;
     const chatId = msg.chat.id;
 
     const userText=msg.text;
     if(userText == '/start'){
-        bot.sendMessage(chatId,"به توفکن خوش اومدی خوشتیپ!")
+        bot.sendMessage(chatId,"به توفکن خوش اومدی خوشتیپ!") 
     }
-
-if(regex.test(userText)){
-    bot.sendMessage(chatId,"به توفکن خوش اومدی خوشتیپ!")
+   
+    if(userText == 'salam')
+        bot.sendMessage(chatId,"چخبر خوشتیپ")
 }
 
-  });
+);
 
   console.log("bot is started");
