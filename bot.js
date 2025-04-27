@@ -16,13 +16,15 @@ bot.on('message', (msg) => {
 
     const userText=msg.text;
     if(userText == '/start'){
-        bot.sendMessage(chatId,"به توفکن خوش اومدی خوشتیپ!") 
+        bot.sendMessage(chatId,"به توفکن خوش اومدی خوشتیپ!");
     }
    
-    if(userText == 'salam')
-        bot.sendMessage(chatId,"چخبر خوشتیپ")
-}
+    if(userText == 'salam'){
+        bot.sendMessage(chatId,"چخبر خوشتیپ");
+    }
 
-);
+    bot.sendMessage(chatId,"چی چی بیه؟");
+
+});
 
   console.log("bot is started");
