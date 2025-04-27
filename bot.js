@@ -4,6 +4,10 @@ const TelegramBot = require('node-telegram-bot-api');
 const token = '7892178079:AAFpdGBprjs378rXa5KK1swzfsxYj0ypy18';
 
 // Create a bot that uses 'polling' to fetch new updates
+
+const regex = /^\/start$/
+
+
 const bot = new TelegramBot(token, {polling: true});
 
 bot.on('message', (msg) => {
@@ -13,6 +17,11 @@ bot.on('message', (msg) => {
     if(userText == '/start'){
         bot.sendMessage(chatId,"به توفکن خوش اومدی خوشتیپ!")
     }
+
+if(regex.test(userText)){
+    bot.sendMessage(chatId,"به توفکن خوش اومدی خوشتیپ!")
+}
+
   });
 
   console.log("bot is started");
