@@ -11,7 +11,7 @@ bot.on('message', (msg) => {
 
     const userText=msg.text;
     if(userText == '/start'){
-        bot.sendMessage(chatId,"!به توفکن خوش اومدی خوشتیپ")
+        bot.sendMessage(chatId,"به توفکن خوش اومدی خوشتیپ!")
     }
   });
 
