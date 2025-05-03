@@ -4,7 +4,7 @@ const bot = new TelegramBot(token, { polling: true });
 const { default:axios } = require('axios');
 
 bot.on("text",async (msg)=>{
-    const chatId=msg.chat.pinned_message;
+    const chatId=msg.chat.id;
     const userMessage = msg.text;
     let notcontrollermessage = true;
 
@@ -16,7 +16,7 @@ bot.sendMessage(chatId, 'به ربات قیمت لحظه ای توفکن خوش 
     }
 
 
-    if (notcontrollermassage) {
+    if (notcontrollermessage) {
         bot.sendMessage(chatId, 'از دستورات موجود استفاده کن!');
     }
 })
