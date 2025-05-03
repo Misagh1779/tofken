@@ -19,7 +19,7 @@ bot.on('message', (msg) => {
         tarif = true;
         bot.sendMessage(chatId," به توفکن خوش اومدی خوشتیپ!",{
             "reply_markup":{
-                "keyboard":[
+                "keyboard":[,
                     ["سلام","بای"]
                     ["تست1","تست2"]
                 ]
