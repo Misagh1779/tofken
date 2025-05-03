@@ -1,1 +1,2 @@
 https://api.nobitex.net/v2/orderbook/all
+https://api.nobitex.ir/market/udf/history?symbol=BTCIRT&resolution=D&from=$%7Bfrom%7D&to=$%7Bto%7D
