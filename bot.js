@@ -17,17 +17,38 @@ bot.on('message', (msg) => {
 
     if(userText == '/start'){
         tarif = true;
-        bot.sendMessage(chatId," به توفکن خوش اومدی خوشتیپ!");
+        bot.sendMessage(chatId," به توفکن خوش اومدی خوشتیپ!",{
+            "reply_markup":{
+                "keyboard":[
+                    ["سلام","بای"]
+                    ["تست1","تست2"]
+                ]
+            }
+        }
+    )
     }
    
-    if(userText == 'salam'){
+    if(userText == 'سلام'){
         tarif = true;
         bot.sendMessage(chatId, "چخبر خوشتیپ");
+
+        if(userText == 'بای'){
+            tarif = true;
+            bot.sendMessage(chatId, "خودتم بای");
+
+            if(userText == 'تست1'){
+                tarif = true;
+                bot.sendMessage(chatId, "تست بیر");
+
+                if(userText == 'تست2'){
+                    tarif = true;
+                    bot.sendMessage(chatId, "تست ایکی");
+
     }
     if(!tarif) {
     bot.sendMessage(chatId, "چی چی بیه؟");
 }
 
-});
+}}}});
 
   console.log("bot is started");
