@@ -1,0 +1,1 @@
+https://api.nobitex.net/v2/orderbook/all
