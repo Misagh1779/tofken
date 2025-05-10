@@ -53,6 +53,9 @@ bot.on("text", async (msg) => {
     const chatId = msg.chat.id;
     const userMessage = msg.text;
     let notcontrollerMessage = true;
+if (notcontrollerMessage) {
+    bot.sendMessage(chatId, '❗ دستور وارد شده قابل شناسایی نیست. لطفاً از گزینه‌های موجود در منو استفاده کن یا یک نماد معتبر مثل BTCIRT وارد کن.');
+}
 
     if (userMessage === "/start") {
         notcontrollerMessage = false;
