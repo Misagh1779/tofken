@@ -49,47 +49,45 @@ return response.data["c"]
 
 const checkingSymbolregex= /irt$/i;
 
-        bot.on("text", async (msg) => {
-      const chatId = msg.chat.id;
+bot.on("text", async (msg) => {
+    const chatId = msg.chat.id;
     const userMessage = msg.text;
     let notcontrollerMessage = true;
 
     if (userMessage === "/start") {
-          notcontrollerMessage = false;
-          bot.sendMessage(chatId, 'به ربات قیمت لحظه‌ای توفکن خوش اومدی خوشتیپ!',{
-              reply_markup: {
+        notcontrollerMessage = false;
+        bot.sendMessage(chatId, 'به ربات قیمت لحظه‌ای توفکن خوش اومدی خوشتیپ!', {
+            reply_markup: {
                 keyboard: [
-            [{ text: "لیست نمادها" }]
+                    [{ text: "لیست نمادها" }]
                 ],
                 resize_keyboard: true,
-              one_time_keyboard: false
-
+                one_time_keyboard: false
             }
         });
-      }
-
-    if (userMessage == "لیست نمادها") {
-    notcontrollerMessage = false;
-    const message = await getSymbolsListMessage();
-    const parts = splitMessage(message);
-    for (const part of parts) {
-        await bot.sendMessage(chatId, part);
     }
 
-  if(checkingSymbolregex.test(userMessage)){
-  const price = await getprice(userMessage)
-  bot.sendMessage(chatId, `قیمت نماد مورد نظر ${price} تومان است`);
-  notcontrollerMessage = false;
-}
-
-
-}
-
-
-      if (notcontrollerMessage) {
-          bot.sendMessage(chatId, 'از دستورات موجود استفاده کن!'), {
-             
-              }
-    ;
+    else if (userMessage === "لیست نمادها") {
+        notcontrollerMessage = false;
+        const message = await getSymbolsListMessage();
+        const parts = splitMessage(message);
+        for (const part of parts) {
+            await bot.sendMessage(chatId, part);
+        }
     }
-       });
+
+    else if (checkingSymbolregex.test(userMessage)) {
+        notcontrollerMessage = false;
+        const price = await getprice(userMessage);
+        if (price) {
+            bot.sendMessage(chatId, `قیمت نماد مورد نظر ${userMessage} معادل ${price} تومان است.`);
+        } else {
+            bot.sendMessage(chatId, "اطلاعاتی برای نماد مورد نظر یافت نشد.");
+        }
+    }
+
+    if (notcontrollerMessage) {
+        bot.sendMessage(chatId, 'از دستورات موجود استفاده کن!');
+    }
+});
+
