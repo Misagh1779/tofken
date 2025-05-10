@@ -39,7 +39,8 @@ getSymbolsListMessage()
       }
 
       if (userMessage=="لیست نمادها"){
-        bot.sendMessage(chatId,SymbolsMessage)
+        notcontrollerMessage = false;
+        bot.sendMessage(chatId, SymbolsMessage)
       }
 
       if (notcontrollerMessage) {
