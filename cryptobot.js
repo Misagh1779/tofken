@@ -3,7 +3,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const bot = new TelegramBot(token, { polling: true });
 const { default: axios } = require('axios');
 let SymbolsMessage="";
-
+let waitingForSymbol = {};
 
 function splitMessage(message, maxLength = 4000) {
     const parts = [];
@@ -53,14 +53,13 @@ bot.on("text", async (msg) => {
   let waitingForSymbol = {};
     const chatId = msg.chat.id;
     const userMessage = msg.text;
-    let notcontrollerMessage = true;
-
+   
     if (userMessage === "/start") {
     notcontrollerMessage = false;
     bot.sendMessage(chatId, 'به ربات قیمت لحظه‌ای توفکن خوش اومدی خوشتیپ!', {
         reply_markup: {
             keyboard: [
-              [{ text: "🔎 جستجوی نماد دلخواه" }]
+              [{ text: "🔎 جستجوی نماد دلخواه" }],
             [{ text: "📋 لیست نمادها" }],
         [{ text: "💰 بیت‌کوین" }, { text: "💰 اتریوم" }],
         [{ text: "💰 تتر" }, { text: "💰 ترون" }],
