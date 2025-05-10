@@ -4,18 +4,36 @@ const bot = new TelegramBot(token, { polling: true });
 const { default: axios } = require('axios');
 let SymbolsMessage="";
 
-    async function getSymbolsListMessage(){
-        SymbolsMessage="";
-        const response= await axios.get("https://api.nobitex.net/v2/orderbook/all");
+   async function getSymbolsListMessage(chatId) {
+    const response = await axios.get("https://api.nobitex.net/v2/orderbook/all");
+    const symbols = Object.keys(response.data.orderbooks);
     
-    for (const symbol in response.data){
-        SymbolsMessage += `${symbol }
-        
-        `
-      }
-  console.log("Symbols fetched")
-  return SymbolsMessage
+    let messageChunk = "";
+    let allChunks = [];
+
+    for (const symbol of symbols) {
+        const line = `${symbol}\n`;
+
+        if ((messageChunk + line).length > 4000) {  // کمی پایین‌تر از 4096 برای اطمینان
+            allChunks.push(messageChunk);
+            messageChunk = line;
+        } else {
+            messageChunk += line;
+        }
+    }
+
+    // آخرین بخش رو هم اضافه کن
+    if (messageChunk.length > 0) {
+        allChunks.push(messageChunk);
+    }
+
+    for (const chunk of allChunks) {
+        await bot.sendMessage(chatId, chunk);
+    }
+
+    console.log("Symbols sent in chunks.");
 }
+
 
 getSymbolsListMessage()
     
@@ -40,7 +58,7 @@ getSymbolsListMessage()
 
       if (userMessage=="لیست نمادها"){
         notcontrollerMessage = false;
-        bot.sendMessage(chatId, SymbolsMessage)
+        await getSymbolsListMessage(chatId);
       }
 
       if (notcontrollerMessage) {
