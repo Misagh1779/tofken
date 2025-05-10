@@ -1,53 +1,35 @@
 const token = '7892178079:AAFpdGBprjs378rXa5KK1swzfsxYj0ypy18';
 const TelegramBot = require('node-telegram-bot-api');
-const bot = new TelegramBot(token, { polling: true });
 const { default: axios } = require('axios');
-let SymbolsMessage="";
+
+const bot = new TelegramBot(token, { polling: true });
 let waitingForSymbol = {};
 
-function splitMessage(message, maxLength = 4000) {
-    const parts = [];
-    while (message.length > 0) {
-        parts.push(message.slice(0, maxLength));
-        message = message.slice(maxLength);
+async function getPrice(symbol) {
+    const to = Math.floor(Date.now() / 1000);
+    const from = to - 86400;
+
+    const response = await axios.get(`https://api.nobitex.ir/market/udf/history?symbol=${symbol}&resolution=D&from=${from}&to=${to}`);
+
+    if (response.data["s"] === "ok") {
+        const prices = response.data["c"];
+        return parseFloat(prices[prices.length - 1]);
     }
-    return parts;
+    return null;
 }
 
+async function getPriceWithDollar(symbol) {
+    const tomanPrice = await getPrice(symbol);
+    const dollarPrice = await getPrice("USDTIRT");
 
+    if (!tomanPrice || !dollarPrice) return null;
 
-    async function getSymbolsListMessage(){
-        SymbolsMessage="";
-        const response= await axios.get("https://api.nobitex.net/v2/orderbook/all");
-    
-    for (const symbol in response.data){
-        SymbolsMessage += `${symbol }
-        
-        `
-      }
-  console.log("Symbols fetched")
-  return SymbolsMessage
+    const inDollar = (tomanPrice / dollarPrice).toFixed(2);
+    return {
+        toman: tomanPrice.toLocaleString("fa-IR"),
+        dollar: inDollar
+    };
 }
-
-getSymbolsListMessage()
-    
-
-async function getprice(symbol) {
-
-  const to = Math.floor(Date.now() / 1000);
-
-  const from = to - 86400
-
-const response = await axios.get (`https://api.nobitex.ir/market/udf/history?symbol=${symbol}&resolution=D&from=${from}&to=${to}`);
-
-console.log(response.data)
-if (response.data["s"] == "ok") {
-return response.data["c"]
-
-}
-}
-
-const checkingSymbolregex= /irt$/i;
 
 bot.on("text", async (msg) => {
     const chatId = msg.chat.id;
@@ -66,52 +48,9 @@ bot.on("text", async (msg) => {
                     [{ text: "💰 ریپل" }, { text: "💰 دوج‌کوین" }],
                     [{ text: "💰 بایننس‌کوین" }]
                 ],
-                resize_keyboard: true,
-                one_time_keyboard: false
+                resize_keyboard: true
             }
         });
-    }
-
-    else if (userMessage === "💰 بیت‌کوین") {
-        notcontrollerMessage = false;
-        const price = await getprice("BTCIRT");
-        bot.sendMessage(chatId, `💸 قیمت بیت‌کوین: ${price} تومان`);
-    }
-
-    else if (userMessage === "💰 اتریوم") {
-        notcontrollerMessage = false;
-        const price = await getprice("ETHIRT");
-        bot.sendMessage(chatId, `💸 قیمت اتریوم: ${price} تومان`);
-    }
-
-    else if (userMessage === "💰 تتر") {
-        notcontrollerMessage = false;
-        const price = await getprice("USDTIRT");
-        bot.sendMessage(chatId, `💸 قیمت تتر: ${price} تومان`);
-    }
-
-    else if (userMessage === "💰 ترون") {
-        notcontrollerMessage = false;
-        const price = await getprice("TRXIRT");
-        bot.sendMessage(chatId, `💸 قیمت ترون: ${price} تومان`);
-    }
-
-    else if (userMessage === "💰 دوج‌کوین") {
-        notcontrollerMessage = false;
-        const price = await getprice("DOGEIRT");
-        bot.sendMessage(chatId, `💸 قیمت دوج‌کوین: ${price} تومان`);
-    }
-
-    else if (userMessage === "💰 ریپل") {
-        notcontrollerMessage = false;
-        const price = await getprice("XRPIRT");
-        bot.sendMessage(chatId, `💸 قیمت ریپل: ${price} تومان`);
-    }
-
-    else if (userMessage === "💰 بایننس‌کوین") {
-        notcontrollerMessage = false;
-        const price = await getprice("BNBIRT");
-        bot.sendMessage(chatId, `💸 قیمت بایننس‌کوین: ${price} تومان`);
     }
 
     else if (userMessage === "🔎 جستجوی نماد دلخواه") {
@@ -123,10 +62,10 @@ bot.on("text", async (msg) => {
     else if (waitingForSymbol[chatId]) {
         notcontrollerMessage = false;
         const symbol = userMessage.toUpperCase();
-        const price = await getprice(symbol);
+        const price = await getPriceWithDollar(symbol);
 
         if (price) {
-            bot.sendMessage(chatId, `💸 قیمت ${symbol}: ${price} تومان`);
+            bot.sendMessage(chatId, `💸 قیمت ${symbol}:\n${price.toman} تومان\n💵 حدوداً ${price.dollar} دلار`);
         } else {
             bot.sendMessage(chatId, `❌ نتونستم قیمت ${symbol} رو پیدا کنم.`);
         }
@@ -134,8 +73,31 @@ bot.on("text", async (msg) => {
         waitingForSymbol[chatId] = false;
     }
 
-    // اگر هیچکدوم از موارد بالا نبود:
+    // کلیدهای پیش‌فرض
+    const symbolsMap = {
+        "💰 بیت‌کوین": "BTCIRT",
+        "💰 اتریوم": "ETHIRT",
+        "💰 تتر": "USDTIRT",
+        "💰 ترون": "TRXIRT",
+        "💰 دوج‌کوین": "DOGEIRT",
+        "💰 ریپل": "XRPIRT",
+        "💰 بایننس‌کوین": "BNBIRT"
+    };
+
+    if (symbolsMap[userMessage]) {
+        notcontrollerMessage = false;
+        const symbol = symbolsMap[userMessage];
+        const price = await getPriceWithDollar(symbol);
+
+        if (price) {
+            bot.sendMessage(chatId, `💸 قیمت ${userMessage.replace("💰 ", "")}:\n${price.toman} تومان\n💵 حدوداً ${price.dollar} دلار`);
+        } else {
+            bot.sendMessage(chatId, `❌ نتونستم قیمت ${symbol} رو پیدا کنم.`);
+        }
+    }
+
     if (notcontrollerMessage) {
-        bot.sendMessage(chatId, '❗ دستور وارد شده قابل شناسایی نیست. لطفاً از گزینه‌های منو استفاده کن یا یک نماد معتبر مثل BTCIRT وارد کن.');
+        bot.sendMessage(chatId, '❗ دستور وارد شده قابل شناسایی نیست. لطفاً از گزینه‌های منو استفاده کن یا یه نماد معتبر مثل BTCIRT وارد کن.');
     }
 });
+
