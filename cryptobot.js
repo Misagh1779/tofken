@@ -6,16 +6,14 @@ const bot = new TelegramBot(token, { polling: true });
 let waitingForSymbol = {};
 
 async function getPrice(symbol) {
-    const to = Math.floor(Date.now() / 1000);
-    const from = to - 86400;
-
-    const response = await axios.get(`https://api.nobitex.ir/market/udf/history?symbol=${symbol}&resolution=D&from=${from}&to=${to}`);
-
-    if (response.data["s"] === "ok") {
-        const prices = response.data["c"];
-        return parseFloat(prices[prices.length - 1]);
+    try {
+        const response = await axios.get(`https://api.nobitex.ir/market/orderbook/${symbol}`);
+        const bestAsk = response.data?.orderbook?.asks?.[0]?.[0];
+        return bestAsk ? parseFloat(bestAsk) : null;
+    } catch (err) {
+        console.error("خطا در دریافت قیمت:", err.message);
+        return null;
     }
-    return null;
 }
 
 async function getPriceWithDollar(symbol) {
@@ -73,7 +71,6 @@ bot.on("text", async (msg) => {
         waitingForSymbol[chatId] = false;
     }
 
-    // کلیدهای پیش‌فرض
     const symbolsMap = {
         "💰 بیت‌کوین": "BTCIRT",
         "💰 اتریوم": "ETHIRT",
@@ -100,4 +97,5 @@ bot.on("text", async (msg) => {
         bot.sendMessage(chatId, '❗ دستور وارد شده قابل شناسایی نیست. لطفاً از گزینه‌های منو استفاده کن یا یه نماد معتبر مثل BTCIRT وارد کن.');
     }
 });
+
 
