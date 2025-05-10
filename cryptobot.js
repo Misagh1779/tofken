@@ -29,7 +29,7 @@ function splitMessage(message, maxLength = 4000) {
   return SymbolsMessage
 }
 
-//getSymbolsListMessage()
+getSymbolsListMessage()
     
 
 async function getprice(symbol) {
@@ -55,26 +55,40 @@ bot.on("text", async (msg) => {
     let notcontrollerMessage = true;
 
     if (userMessage === "/start") {
-        notcontrollerMessage = false;
-        bot.sendMessage(chatId, 'به ربات قیمت لحظه‌ای توفکن خوش اومدی خوشتیپ!', {
-            reply_markup: {
-                keyboard: [
-                    [{ text: "لیست نمادها" }]
-                ],
-                resize_keyboard: true,
-                one_time_keyboard: false
-            }
-        });
-    }
-
-    else if (userMessage === "لیست نمادها") {
-        notcontrollerMessage = false;
-        const message = await getSymbolsListMessage();
-        const parts = splitMessage(message);
-        for (const part of parts) {
-            await bot.sendMessage(chatId, part);
+    notcontrollerMessage = false;
+    bot.sendMessage(chatId, 'به ربات قیمت لحظه‌ای توفکن خوش اومدی خوشتیپ!', {
+        reply_markup: {
+            keyboard: [
+                [{ text: "📋 لیست نمادها" }],
+                [{ text: "💰 قیمت بیت‌کوین" }, { text: "💰 قیمت اتریوم" }]
+            ],
+            resize_keyboard: true,
+            one_time_keyboard: false
         }
+    });
+}
+
+else if (userMessage === "📋 لیست نمادها") {
+    notcontrollerMessage = false;
+    const message = await getSymbolsListMessage();
+    const parts = splitMessage(message);
+    for (const part of parts) {
+        await bot.sendMessage(chatId, part);
     }
+}
+
+else if (userMessage === "💰 قیمت بیت‌کوین") {
+    notcontrollerMessage = false;
+    const price = await getprice("BTCIRT");
+    bot.sendMessage(chatId, `💸 قیمت بیت‌کوین (BTCIRT): ${price} تومان`);
+}
+
+else if (userMessage === "💰 قیمت اتریوم") {
+    notcontrollerMessage = false;
+    const price = await getprice("ETHIRT");
+    bot.sendMessage(chatId, `💸 قیمت اتریوم (ETHIRT): ${price} تومان`);
+}
+
 
     else if (checkingSymbolregex.test(userMessage)) {
         notcontrollerMessage = false;
