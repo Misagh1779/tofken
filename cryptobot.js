@@ -40,7 +40,6 @@ getSymbolsListMessage()
 
       if (userMessage=="لیست نمادها"){
         notcontrollerMessage = false;
-        const message = await getSymbolsListMessage();
         bot.sendMessage(chatId, SymbolsMessage)
       }
 
