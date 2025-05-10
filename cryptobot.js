@@ -29,8 +29,26 @@ function splitMessage(message, maxLength = 4000) {
   return SymbolsMessage
 }
 
-getSymbolsListMessage()
+//getSymbolsListMessage()
     
+
+async function getprice(symbol) {
+
+  const to = Math.floor(Date.now() / 1000);
+
+  const from = to - 86400
+
+const response = await axios.get (`https://api.nobitex.ir/market/udf/history?symbol=${symbol}&resolution=D&from=${from}&to=${to}`);
+
+console.log(response.data)
+if (response.data["s"] == "ok") {
+return response.data["c"]
+
+}
+}
+
+const checkingSymbolregex= /irt$/i;
+
         bot.on("text", async (msg) => {
       const chatId = msg.chat.id;
     const userMessage = msg.text;
@@ -44,7 +62,7 @@ getSymbolsListMessage()
             [{ text: "لیست نمادها" }]
                 ],
                 resize_keyboard: true,
-                one_time_keyboard: false
+              one_time_keyboard: false
 
             }
         });
@@ -57,13 +75,21 @@ getSymbolsListMessage()
     for (const part of parts) {
         await bot.sendMessage(chatId, part);
     }
+
+if(checkingSymbolregex.test(userMessage)){
+  notcontrollerMessage = false;
+  const price = await getprice(userMessage)
+  bot.sendMessage(chatId, `قیمت نماد مورد نظر ${price} تومان است`);
+}
+
+
 }
 
 
       if (notcontrollerMessage) {
           bot.sendMessage(chatId, 'از دستورات موجود استفاده کن!'), {
-              
+             
               }
     ;
     }
-        });
+       });
