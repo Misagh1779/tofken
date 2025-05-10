@@ -76,10 +76,10 @@ const checkingSymbolregex= /irt$/i;
         await bot.sendMessage(chatId, part);
     }
 
-if(checkingSymbolregex.test(userMessage)){
-  notcontrollerMessage = false;
+  if(checkingSymbolregex.test(userMessage)){
   const price = await getprice(userMessage)
   bot.sendMessage(chatId, `قیمت نماد مورد نظر ${price} تومان است`);
+  notcontrollerMessage = false;
 }
 
 
