@@ -72,26 +72,7 @@ bot.on("text", async (msg) => {
         });
     }
 
-    else if (userMessage === "🔎 جستجوی نماد دلخواه") {
-        notcontrollerMessage = false;
-        waitingForSymbol[chatId] = true;
-        bot.sendMessage(chatId, "✅ لطفاً نماد مورد نظرت رو وارد کن (مثلاً: ADAIRT)");
-    }
-
-    else if (waitingForSymbol[chatId]) {
-        notcontrollerMessage = false;
-        const symbol = userMessage.toUpperCase();
-        const price = await getprice(symbol);
-
-        if (price) {
-            bot.sendMessage(chatId, `💸 قیمت ${symbol}: ${price} تومان`);
-        } else {
-            bot.sendMessage(chatId, `❌ نتونستم قیمت ${symbol} رو پیدا کنم.`);
-        }
-
-        waitingForSymbol[chatId] = false;
-
-        else if (userMessage === "💰 بیت‌کوین") {
+    else if (userMessage === "💰 بیت‌کوین") {
     notcontrollerMessage = false;
     const price = await getprice("BTCIRT");
     bot.sendMessage(chatId, `💸 قیمت بیت‌کوین: ${price} تومان`);
@@ -133,6 +114,25 @@ else if (userMessage === "💰 بایننس‌کوین") {
     bot.sendMessage(chatId, `💸 قیمت بایننس‌کوین: ${price} تومان`);
 }
 
+
+    else if (userMessage === "🔎 جستجوی نماد دلخواه") {
+        notcontrollerMessage = false;
+        waitingForSymbol[chatId] = true;
+        bot.sendMessage(chatId, "✅ لطفاً نماد مورد نظرت رو وارد کن (مثلاً: ADAIRT)");
+    }
+
+    else if (waitingForSymbol[chatId]) {
+        notcontrollerMessage = false;
+        const symbol = userMessage.toUpperCase();
+        const price = await getprice(symbol);
+
+        if (price) {
+            bot.sendMessage(chatId, `💸 قیمت ${symbol}: ${price} تومان`);
+        } else {
+            bot.sendMessage(chatId, `❌ نتونستم قیمت ${symbol} رو پیدا کنم.`);
+        }
+
+        waitingForSymbol[chatId] = false;
     }
 
 
