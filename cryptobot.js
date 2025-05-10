@@ -4,36 +4,30 @@ const bot = new TelegramBot(token, { polling: true });
 const { default: axios } = require('axios');
 let SymbolsMessage="";
 
-   async function getSymbolsListMessage(chatId) {
-    const response = await axios.get("https://api.nobitex.net/v2/orderbook/all");
-    const symbols = Object.keys(response.data.orderbooks);
-    
-    let messageChunk = "";
-    let allChunks = [];
 
-    for (const symbol of symbols) {
-        const line = `${symbol}\n`;
-
-        if ((messageChunk + line).length > 4000) {  // کمی پایین‌تر از 4096 برای اطمینان
-            allChunks.push(messageChunk);
-            messageChunk = line;
-        } else {
-            messageChunk += line;
-        }
+function splitMessage(message, maxLength = 4000) {
+    const parts = [];
+    while (message.length > 0) {
+        parts.push(message.slice(0, maxLength));
+        message = message.slice(maxLength);
     }
-
-    // آخرین بخش رو هم اضافه کن
-    if (messageChunk.length > 0) {
-        allChunks.push(messageChunk);
-    }
-
-    for (const chunk of allChunks) {
-        await bot.sendMessage(chatId, chunk);
-    }
-
-    console.log("Symbols sent in chunks.");
+    return parts;
 }
 
+
+
+    async function getSymbolsListMessage(){
+        SymbolsMessage="";
+        const response= await axios.get("https://api.nobitex.net/v2/orderbook/all");
+    
+    for (const symbol in response.data){
+        SymbolsMessage += `${symbol }
+        
+        `
+      }
+  console.log("Symbols fetched")
+  return SymbolsMessage
+}
 
 getSymbolsListMessage()
     
@@ -56,10 +50,15 @@ getSymbolsListMessage()
         });
       }
 
-      if (userMessage=="لیست نمادها"){
-        notcontrollerMessage = false;
-        await getSymbolsListMessage(chatId);
-      }
+    if (userMessage == "لیست نمادها") {
+    notcontrollerMessage = false;
+    const message = await getSymbolsListMessage();
+    const parts = splitMessage(message);
+    for (const part of parts) {
+        await bot.sendMessage(chatId, part);
+    }
+}
+
 
       if (notcontrollerMessage) {
           bot.sendMessage(chatId, 'از دستورات موجود استفاده کن!'), {
