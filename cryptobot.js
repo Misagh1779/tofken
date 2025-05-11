@@ -1,6 +1,6 @@
 const token = '7892178079:AAFpdGBprjs378rXa5KK1swzfsxYj0ypy18';
 const TelegramBot = require('node-telegram-bot-api');
-const { default: axios } = require('axios');
+const axios = require('axios');
 
 const bot = new TelegramBot(token, { polling: true });
 
@@ -20,13 +20,14 @@ const mainKeyboard = {
   resize_keyboard: true
 };
 
+// تابع برای دریافت قیمت یک نماد
 async function getPrice(symbol) {
   try {
     const to = Math.floor(Date.now() / 1000);
-    const from = to - 86400;
+    const from = to - 86400; // قیمت روز گذشته
     const response = await axios.get(`https://api.nobitex.ir/market/udf/history?symbol=${encodeURIComponent(symbol)}&resolution=D&from=${from}&to=${to}`);
-    if (response.data["s"] === "ok") {
-      const prices = response.data["c"];
+    if (response.data.s === 'ok') {
+      const prices = response.data.c;
       return parseFloat(prices[prices.length - 1]);
     }
   } catch (err) {
@@ -35,6 +36,7 @@ async function getPrice(symbol) {
   return null;
 }
 
+// تابع برای دریافت قیمت به دلار
 async function getPriceWithDollar(symbol) {
   const tomanPrice = await getPrice(symbol);
   const dollarPrice = await getPrice("USDTIRT");
@@ -48,6 +50,7 @@ async function getPriceWithDollar(symbol) {
   };
 }
 
+// لیست نمادهای قابل معامله
 function getSymbolsListMessage() {
   const symbols = [
     { titleFa: "بیت‌کوین", symbol: "BTC" },
@@ -81,42 +84,37 @@ const symbolsMap = {
   "💰 بایننس‌کوین": "BNBIRT"
 };
 
+// شروع کار با ربات
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
   const userMessage = msg.text;
 
-// فرمان استارت
-if (userMessage === "/start") {
-    notcontrollerMessage = false;
+  if (userMessage === "/start") {
     bot.sendAnimation(chatId, 'CgACAgQAAxkBAAICgmggy5oVppxhVyCDr1gonAAB_zm90gACKh0AAjbACVGKm1-ckg61AzYE', {
-        caption: "به ربات خوش اومدی 👋",
-        reply_markup: mainKeyboard
+      caption: "به ربات خوش اومدی 👋",
+      reply_markup: mainKeyboard
     });
     return;
-}
+  }
 
-
-  // لیست نمادها
+  // دکمه‌های منو
   if (userMessage === "📋 لیست نمادها") {
     bot.sendMessage(chatId, getSymbolsListMessage());
     return;
   }
 
-  // جستجوی نماد
   if (userMessage === "🔎 جستجوی نماد") {
     waitingForSymbol[chatId] = true;
     bot.sendMessage(chatId, "🔍 لطفاً نماد مورد نظر رو وارد کن (مثلاً ADAIRT)");
     return;
   }
 
-  // افزودن دارایی
   if (userMessage === "➕ افزودن دارایی") {
     waitingForAdd[chatId] = { step: 1, data: {} };
     bot.sendMessage(chatId, "🔹 مرحله ۱: لطفاً نماد رو وارد کن (مثلاً: BTCIRT)");
     return;
   }
 
-  // مشاهده سبد سرمایه
   if (userMessage === "📊 سبد سرمایه") {
     const userPortfolio = portfolios[chatId];
     if (!userPortfolio || userPortfolio.length === 0) {
@@ -143,22 +141,22 @@ if (userMessage === "/start") {
       const status = diff >= 0 ? "📈 سود" : "📉 ضرر";
 
       message += `🔸 ${item.symbol} | ${item.amount} واحد\n`;
-      message += `💰 فعلی: ${valueNow.toLocaleString("fa-IR")} تومان\n`;
-      message += `${status}: ${diff.toLocaleString("fa-IR")} تومان (${percent}%)\n\n`;
+      message += `💰 فعلی: ${(valueNow / getPrice("USDTIRT")).toFixed(2)} دلار\n`;
+      message += `${status}: ${(diff / getPrice("USDTIRT")).toFixed(2)} دلار (${percent}%)\n\n`;
     }
 
     const totalDiff = totalNow - totalBuy;
     const totalStatus = totalDiff >= 0 ? "📈 سود کلی" : "📉 ضرر کلی";
 
-    message += `🧮 مجموع فعلی: ${totalNow.toLocaleString("fa-IR")} تومان\n`;
-    message += `💸 مجموع خرید: ${totalBuy.toLocaleString("fa-IR")} تومان\n`;
-    message += `${totalStatus}: ${totalDiff.toLocaleString("fa-IR")} تومان`;
+    message += `🧮 مجموع فعلی: ${(totalNow / getPrice("USDTIRT")).toFixed(2)} دلار\n`;
+    message += `💸 مجموع خرید: ${(totalBuy / getPrice("USDTIRT")).toFixed(2)} دلار\n`;
+    message += `${totalStatus}: ${(totalDiff / getPrice("USDTIRT")).toFixed(2)} دلار`;
 
     bot.sendMessage(chatId, message);
     return;
   }
 
-  // پاسخ به جستجوی نماد
+  // جستجوی نماد
   if (waitingForSymbol[chatId]) {
     const symbol = userMessage.toUpperCase();
     const price = await getPriceWithDollar(symbol);
