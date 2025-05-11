@@ -11,7 +11,9 @@ async function getPrice(symbol) {
         const to = Math.floor(Date.now() / 1000);
         const from = to - 86400;
 
-        const response = await axios.get(`https://api.nobitex.ir/market/udf/history?symbol=${symbol}&resolution=D&from=${from}&to=${to}`);
+       const encodedSymbol = encodeURIComponent(symbol);
+const response = await axios.get(`https://api.nobitex.ir/market/udf/history?symbol=${encodedSymbol}&resolution=D&from=${from}&to=${to}`);
+
 
         if (response.data["s"] === "ok") {
             const prices = response.data["c"];
