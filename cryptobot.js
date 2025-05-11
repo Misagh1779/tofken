@@ -5,7 +5,6 @@ const { default: axios } = require('axios');
 const bot = new TelegramBot(token, { polling: true });
 let waitingForSymbol = {};
 
-// دریافت قیمت آخرین روز برای نماد
 async function getPrice(symbol) {
     try {
         const to = Math.floor(Date.now() / 1000);
@@ -25,7 +24,7 @@ async function getPrice(symbol) {
     return null;
 }
 
-// دریافت قیمت به تومان و دلار
+
 async function getPriceWithDollar(symbol) {
     const tomanPrice = await getPrice(symbol);
     const dollarPrice = await getPrice("USDTIRT");
@@ -39,7 +38,7 @@ async function getPriceWithDollar(symbol) {
     };
 }
 
-// دریافت لیست نمادها از آرایه ثابت
+
 function getSymbolsListMessage() {
     const symbols = [
         { titleFa: "بیت‌کوین", symbol: "BTC" },
@@ -64,13 +63,13 @@ function getSymbolsListMessage() {
     return message;
 }
 
-// هندل پیام‌ها
+
 bot.on("text", async (msg) => {
     const chatId = msg.chat.id;
     const userMessage = msg.text;
     let notcontrollerMessage = true;
 
-    // استارت
+ 
     if (userMessage === "/start") {
         notcontrollerMessage = false;
         bot.sendMessage(chatId, 'به ربات قیمت لحظه‌ای توفکن خوش اومدی خوشتیپ! 👋', {
@@ -88,21 +87,21 @@ bot.on("text", async (msg) => {
         });
     }
 
-    // لیست نمادها
+
     else if (userMessage === "📋 لیست نمادها") {
         notcontrollerMessage = false;
-        const list = getSymbolsListMessage(); // دیگه نیازی به await نیست چون async نیست
+        const list = getSymbolsListMessage(); 
         bot.sendMessage(chatId, list);
     }
 
-    // جستجوی دلخواه
+    
     else if (userMessage === "🔎 جستجوی نماد دلخواه") {
         notcontrollerMessage = false;
         waitingForSymbol[chatId] = true;
         bot.sendMessage(chatId, "✅ لطفاً نماد مورد نظرت رو وارد کن (مثلاً: ADAIRT)");
     }
 
-    // پاسخ به نماد واردشده
+   
     else if (waitingForSymbol[chatId]) {
         notcontrollerMessage = false;
         const symbol = userMessage.toUpperCase();
@@ -116,7 +115,7 @@ bot.on("text", async (msg) => {
         const price = await getPriceWithDollar(symbol);
 
         if (price) {
-            bot.sendMessage(chatId, `💸 قیمت ${symbol}:\n${price.toman} تومان\n💵 حدوداً ${price.dollar} دلار`);
+            bot.sendMessage(chatId, `💸 قیمت ${symbol}:\n${price.toman} تومان\n💵${price.dollar} دلار`);
         } else {
             bot.sendMessage(chatId, `❌ نتونستم قیمت ${symbol} رو پیدا کنم.`);
         }
@@ -124,7 +123,6 @@ bot.on("text", async (msg) => {
         waitingForSymbol[chatId] = false;
     }
 
-    // نمادهای از پیش تعریف‌شده
     const symbolsMap = {
         "💰 بیت‌کوین": "BTCIRT",
         "💰 اتریوم": "ETHIRT",
@@ -147,7 +145,7 @@ bot.on("text", async (msg) => {
         }
     }
 
-    // پیام پیش‌فرض
+
     if (notcontrollerMessage) {
         bot.sendMessage(chatId, '❗ دستور وارد شده قابل شناسایی نیست. لطفاً از منو استفاده کن یا یک نماد معتبر مثل BTCIRT وارد کن.');
     }
