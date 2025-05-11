@@ -160,72 +160,72 @@ bot.on("text", async (msg) => {
     bot.sendMessage(chatId, message);
     return;
   }
-  // جستجوی نماد
-  if (waitingForSymbol[chatId]) {
-    const symbol = userMessage.toUpperCase();
-    const price = await getPriceWithDollar(symbol);
-    if (price) {
-      bot.sendMessage(chatId, `💸 قیمت ${symbol}:\n${price.toman} تومان\n💵 ${price.dollar} دلار`);
-    } else {
-      bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
-    }
-    waitingForSymbol[chatId] = false;
-    return;
+ // جستجوی نماد
+if (waitingForSymbol[chatId]) {
+  const symbol = userMessage.toUpperCase();
+  const price = await getPriceWithDollar(symbol);
+  if (price) {
+    bot.sendMessage(chatId, `💸 قیمت ${symbol}:\n💵 ${price.dollar} دلار`);
+  } else {
+    bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
   }
+  waitingForSymbol[chatId] = false;
+  return;
+}
 
-  // مراحل افزودن دارایی
-  if (waitingForAdd[chatId]) {
-    const step = waitingForAdd[chatId].step;
-    const data = waitingForAdd[chatId].data;
+// مراحل افزودن دارایی
+if (waitingForAdd[chatId]) {
+  const step = waitingForAdd[chatId].step;
+  const data = waitingForAdd[chatId].data;
 
-    if (step === 1) {
-      data.symbol = userMessage.toUpperCase();
-      waitingForAdd[chatId].step = 2;
-      bot.sendMessage(chatId, "🔹 مرحله ۲: تعداد دارایی رو وارد کن (مثلاً: 0.5)");
-    } else if (step === 2) {
-      const amount = parseFloat(userMessage);
-      if (isNaN(amount)) {
-        bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
-        return;
-      }
-      data.amount = amount;
-      waitingForAdd[chatId].step = 3;
-      bot.sendMessage(chatId, "🔹 مرحله ۳: قیمت خرید هر واحد رو وارد کن (تومان)");
-    } else if (step === 3) {
-      const price = parseInt(userMessage);
-      if (isNaN(price)) {
-        bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
-        return;
-      }
-      data.buyPrice = price;
-      const dollarPrice = await getPriceWithDollar(data.symbol);
-      if (dollarPrice) {
-        data.buyPriceInDollar = (data.buyPrice / dollarPrice.toman).toFixed(2);
-      }
-
-      if (!portfolios[chatId]) portfolios[chatId] = [];
-      portfolios[chatId].push({
-        symbol: data.symbol,
-        amount: data.amount,
-        buyPrice: data.buyPrice,
-        buyPriceInDollar: data.buyPriceInDollar
-      });
-
-      bot.sendMessage(chatId, `✅ دارایی ${data.amount} ${data.symbol} با قیمت ${data.buyPrice.toLocaleString("fa-IR")} تومان و معادل ${data.buyPriceInDollar} دلار ثبت شد.`);
-      waitingForAdd[chatId] = null;
+  if (step === 1) {
+    data.symbol = userMessage.toUpperCase();
+    waitingForAdd[chatId].step = 2;
+    bot.sendMessage(chatId, "🔹 مرحله ۲: تعداد دارایی رو وارد کن (مثلاً: 0.5)");
+  } else if (step === 2) {
+    const amount = parseFloat(userMessage);
+    if (isNaN(amount)) {
+      bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
+      return;
     }
-    return;
-  }
-
-  if (symbolsMap[userMessage]) {
-    const symbol = symbolsMap[userMessage];
-    const price = await getPriceWithDollar(symbol);
-
-    if (price) {
-      bot.sendMessage(chatId, `💰 قیمت ${userMessage.replace("💰 ", "")}:\n${price.toman} تومان\n💵 ${price.dollar} دلار`);
-    } else {
-      bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
+    data.amount = amount;
+    waitingForAdd[chatId].step = 3;
+    bot.sendMessage(chatId, "🔹 مرحله ۳: قیمت خرید هر واحد رو وارد کن (تومان)");
+  } else if (step === 3) {
+    const price = parseInt(userMessage);
+    if (isNaN(price)) {
+      bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
+      return;
     }
-    return;
+    data.buyPrice = price;
+    const dollarPrice = await getPriceWithDollar(data.symbol);
+    if (dollarPrice) {
+      data.buyPriceInDollar = (data.buyPrice / dollarPrice.toman).toFixed(2);
+    }
+
+    if (!portfolios[chatId]) portfolios[chatId] = [];
+    portfolios[chatId].push({
+      symbol: data.symbol,
+      amount: data.amount,
+      buyPrice: data.buyPrice,
+      buyPriceInDollar: data.buyPriceInDollar
+    });
+
+    bot.sendMessage(chatId, `✅ دارایی ${data.amount} ${data.symbol} با قیمت ${data.buyPriceInDollar} دلار ثبت شد.`);
+    waitingForAdd[chatId] = null;
   }
+  return;
+}
+
+if (symbolsMap[userMessage]) {
+  const symbol = symbolsMap[userMessage];
+  const price = await getPriceWithDollar(symbol);
+
+  if (price) {
+    bot.sendMessage(chatId, `💰 قیمت ${userMessage.replace("💰 ", "")}:\n💵 ${price.dollar} دلار`);
+  } else {
+    bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
+  }
+  return;
+}
 })
