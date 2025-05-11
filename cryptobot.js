@@ -160,7 +160,6 @@ bot.on("text", async (msg) => {
     bot.sendMessage(chatId, message);
     return;
   }
-
   // جستجوی نماد
   if (waitingForSymbol[chatId]) {
     const symbol = userMessage.toUpperCase();
@@ -199,24 +198,29 @@ bot.on("text", async (msg) => {
         return;
       }
       data.buyPrice = price;
+      const dollarPrice = await getPriceWithDollar(data.symbol);
+      if (dollarPrice) {
+        data.buyPriceInDollar = (data.buyPrice / dollarPrice.toman).toFixed(2);
+      }
 
       if (!portfolios[chatId]) portfolios[chatId] = [];
       portfolios[chatId].push({
         symbol: data.symbol,
         amount: data.amount,
-        buyPrice: data.buyPrice
+        buyPrice: data.buyPrice,
+        buyPriceInDollar: data.buyPriceInDollar
       });
 
-      bot.sendMessage(chatId, `✅ دارایی ${data.amount} ${data.symbol} با قیمت ${data.buyPrice.toLocaleString("fa-IR")} ثبت شد.`);
+      bot.sendMessage(chatId, `✅ دارایی ${data.amount} ${data.symbol} با قیمت ${data.buyPrice.toLocaleString("fa-IR")} تومان و معادل ${data.buyPriceInDollar} دلار ثبت شد.`);
       waitingForAdd[chatId] = null;
     }
     return;
   }
 
-  // پاسخ به دکمه‌های قیمت رمزارزها
   if (symbolsMap[userMessage]) {
     const symbol = symbolsMap[userMessage];
     const price = await getPriceWithDollar(symbol);
+
     if (price) {
       bot.sendMessage(chatId, `💰 قیمت ${userMessage.replace("💰 ", "")}:\n${price.toman} تومان\n💵 ${price.dollar} دلار`);
     } else {
@@ -224,4 +228,4 @@ bot.on("text", async (msg) => {
     }
     return;
   }
-});
+})
