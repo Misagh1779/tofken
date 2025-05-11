@@ -1,23 +1,30 @@
-const token = '7892178079:AAFpdGBprjs378rXa5KK1swzfsxYj0ypy18';
+const token = 'توکن رباتتو اینجا بذار';
 const TelegramBot = require('node-telegram-bot-api');
 const { default: axios } = require('axios');
 
 const bot = new TelegramBot(token, { polling: true });
 let waitingForSymbol = {};
 
+// دریافت قیمت آخرین روز برای نماد
 async function getPrice(symbol) {
-    const to = Math.floor(Date.now() / 1000);
-    const from = to - 86400;
+    try {
+        const to = Math.floor(Date.now() / 1000);
+        const from = to - 86400;
 
-    const response = await axios.get(`https://api.nobitex.ir/market/udf/history?symbol=${symbol}&resolution=D&from=${from}&to=${to}`);
+        const response = await axios.get(`https://api.nobitex.ir/market/udf/history?symbol=${symbol}&resolution=D&from=${from}&to=${to}`);
 
-    if (response.data["s"] === "ok") {
-        const prices = response.data["c"];
-        return parseFloat(prices[prices.length - 1]);
+        if (response.data["s"] === "ok") {
+            const prices = response.data["c"];
+            return parseFloat(prices[prices.length - 1]);
+        }
+    } catch (err) {
+        console.error(`خطا در دریافت قیمت ${symbol}:`, err.message);
     }
+
     return null;
 }
 
+// دریافت قیمت به تومان و دلار
 async function getPriceWithDollar(symbol) {
     const tomanPrice = await getPrice(symbol);
     const dollarPrice = await getPrice("USDTIRT");
@@ -31,14 +38,37 @@ async function getPriceWithDollar(symbol) {
     };
 }
 
+// دریافت لیست نمادها
+async function getSymbolsListMessage() {
+    try {
+        const response = await axios.get("https://api.nobitex.ir/market/coins");
+        const symbols = response.data.coins;
+
+        let message = "📋 لیست نمادهای قابل معامله:\n\n";
+
+        symbols.forEach((coin) => {
+            if (coin.tradePairs.includes("IRT")) {
+                message += `✅ ${coin.titleFa} (${coin.symbol}IRT)\n`;
+            }
+        });
+
+        return message;
+    } catch (error) {
+        console.error("خطا در دریافت لیست نمادها:", error.message);
+        return "❌ خطا در دریافت لیست نمادها. لطفاً بعداً دوباره امتحان کن.";
+    }
+}
+
+// هندل پیام‌ها
 bot.on("text", async (msg) => {
     const chatId = msg.chat.id;
     const userMessage = msg.text;
     let notcontrollerMessage = true;
 
+    // استارت
     if (userMessage === "/start") {
         notcontrollerMessage = false;
-        bot.sendMessage(chatId, 'به ربات قیمت لحظه‌ای توفکن خوش اومدی خوشتیپ!', {
+        bot.sendMessage(chatId, 'به ربات قیمت لحظه‌ای توفکن خوش اومدی خوشتیپ! 👋', {
             reply_markup: {
                 keyboard: [
                     [{ text: "🔎 جستجوی نماد دلخواه" }],
@@ -53,12 +83,21 @@ bot.on("text", async (msg) => {
         });
     }
 
+    // لیست نمادها
+    else if (userMessage === "📋 لیست نمادها") {
+        notcontrollerMessage = false;
+        const list = await getSymbolsListMessage();
+        bot.sendMessage(chatId, list);
+    }
+
+    // جستجوی دلخواه
     else if (userMessage === "🔎 جستجوی نماد دلخواه") {
         notcontrollerMessage = false;
         waitingForSymbol[chatId] = true;
         bot.sendMessage(chatId, "✅ لطفاً نماد مورد نظرت رو وارد کن (مثلاً: ADAIRT)");
     }
 
+    // پاسخ به نماد واردشده
     else if (waitingForSymbol[chatId]) {
         notcontrollerMessage = false;
         const symbol = userMessage.toUpperCase();
@@ -73,7 +112,7 @@ bot.on("text", async (msg) => {
         waitingForSymbol[chatId] = false;
     }
 
-    // کلیدهای پیش‌فرض
+    // نمادهای از پیش تعریف‌شده
     const symbolsMap = {
         "💰 بیت‌کوین": "BTCIRT",
         "💰 اتریوم": "ETHIRT",
@@ -96,8 +135,8 @@ bot.on("text", async (msg) => {
         }
     }
 
+    // پیام پیش‌فرض برای دستور نامعتبر
     if (notcontrollerMessage) {
-        bot.sendMessage(chatId, '❗ دستور وارد شده قابل شناسایی نیست. لطفاً از گزینه‌های منو استفاده کن یا یه نماد معتبر مثل BTCIRT وارد کن.');
+        bot.sendMessage(chatId, '❗ دستور وارد شده قابل شناسایی نیست. لطفاً از منو استفاده کن یا یک نماد معتبر مثل BTCIRT وارد کن.');
     }
 });
-
