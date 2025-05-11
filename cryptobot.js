@@ -184,37 +184,35 @@ bot.on("text", async (msg) => {
       waitingForAdd[chatId].step = 2;
       bot.sendMessage(chatId, "🔹 مرحله ۲: تعداد دارایی رو وارد کن (مثلاً: 0.5)");
     } else if (step === 2) {
-      const amount = parseFloat(userMessage);
-      if (isNaN(amount)) {
-        bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
-        return;
-      }
-      data.amount = amount;
-      waitingForAdd[chatId].step = 3;
-      bot.sendMessage(chatId, "🔹 مرحله ۳: قیمت خرید هر واحد رو وارد کن (تومان)");
-    } else if (step === 3) {
-      const price = parseInt(userMessage);
-      if (isNaN(price)) {
-        bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
-        return;
-      }
-      data.buyPrice = price;
-      const dollarPrice = await getPriceWithDollar(data.symbol);
-      if (dollarPrice) {
-        data.buyPriceInDollar = (data.buyPrice / dollarPrice.toman).toFixed(2);
-      }
+  const amount = parseFloat(userMessage);
+  if (isNaN(amount)) {
+    bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
+    return;
+  }
+  data.amount = amount;
+  waitingForAdd[chatId].step = 3;
+  bot.sendMessage(chatId, "🔹 مرحله ۳: قیمت خرید هر واحد رو وارد کن (دلار)");
+} else if (step === 3) {
+  const price = parseFloat(userMessage); // تبدیل به عدد اعشاری
+  if (isNaN(price)) {
+    bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
+    return;
+  }
+  data.buyPrice = price; // قیمت به دلار وارد می‌شود
 
-      if (!portfolios[chatId]) portfolios[chatId] = [];
-      portfolios[chatId].push({
-        symbol: data.symbol,
-        amount: data.amount,
-        buyPrice: data.buyPrice,
-        buyPriceInDollar: data.buyPriceInDollar
-      });
+  // ذخیره کردن دارایی با قیمت خرید به دلار
+  if (!portfolios[chatId]) portfolios[chatId] = [];
+  portfolios[chatId].push({
+    symbol: data.symbol,
+    amount: data.amount,
+    buyPrice: data.buyPrice,  // قیمت خرید به دلار
+    buyPriceInDollar: data.buyPrice.toFixed(2) // قیمت خرید به دلار
+  });
 
-      bot.sendMessage(chatId, `✅ دارایی ${data.amount} ${data.symbol} با قیمت ${data.buyPriceInDollar} دلار ثبت شد.`);
-      waitingForAdd[chatId] = null;
-    }
+  bot.sendMessage(chatId, `✅ دارایی ${data.amount} ${data.symbol} با قیمت خرید ${data.buyPrice.toFixed(2)} دلار ثبت شد.`);
+  waitingForAdd[chatId] = null;
+}
+
     return;
   }
 
