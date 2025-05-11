@@ -139,7 +139,7 @@ bot.on("text", async (msg) => {
         const price = await getPriceWithDollar(symbol);
 
         if (price) {
-            bot.sendMessage(chatId, `💸 قیمت ${userMessage.replace("💰 ", "")}:\n${price.toman} تومان\n💵 حدوداً ${price.dollar} دلار`);
+            bot.sendMessage(chatId, `💸 قیمت ${userMessage.replace("💰 ", "")}:\n${price.toman} تومان\n💵 ${price.dollar} دلار`);
         } else {
             bot.sendMessage(chatId, `❌ نتونستم قیمت ${symbol} رو پیدا کنم.`);
         }
