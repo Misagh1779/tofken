@@ -5,6 +5,7 @@ const { default: axios } = require('axios');
 const bot = new TelegramBot(token, { polling: true });
 let waitingForSymbol = {};
 
+
 async function getPrice(symbol) {
     try {
         const to = Math.floor(Date.now() / 1000);
@@ -71,21 +72,24 @@ bot.on("text", async (msg) => {
 
  
     if (userMessage === "/start") {
-        notcontrollerMessage = false;
-        bot.sendMessage(chatId, 'به ربات قیمت لحظه‌ای توفکن خوش اومدی خوشتیپ! 👋', {
-            reply_markup: {
-                keyboard: [
-                    [{ text: "🔎 جستجوی نماد دلخواه" }],
-                    [{ text: "📋 لیست نمادها" }],
-                    [{ text: "💰 بیت‌کوین" }, { text: "💰 اتریوم" }],
-                    [{ text: "💰 تتر" }, { text: "💰 ترون" }],
-                    [{ text: "💰 ریپل" }, { text: "💰 دوج‌کوین" }],
-                    [{ text: "💰 بایننس‌کوین" }]
-                ],
-                resize_keyboard: true
-            }
-        });
-    }
+    notcontrollerMessage = false;
+
+    bot.sendAnimation(chatId, 'CgACAgQAAxkBAAICgmggy5oVppxhVyCDr1gonAAB_zm90gACKh0AAjbACVGKm1-ckg61AzYE', {
+        caption: "به ربات خوش اومدی 👋",
+        reply_markup: {
+            keyboard: [
+                [{ text: "🔎 جستجوی نماد دلخواه" }],
+                [{ text: "📋 لیست نمادها" }],
+                [{ text: "💰 بیت‌کوین" }, { text: "💰 اتریوم" }],
+                [{ text: "💰 تتر" }, { text: "💰 ترون" }],
+                [{ text: "💰 ریپل" }, { text: "💰 دوج‌کوین" }],
+                [{ text: "💰 بایننس‌کوین" }]
+            ],
+            resize_keyboard: true
+        }
+    });
+}
+
 
 
     else if (userMessage === "📋 لیست نمادها") {
