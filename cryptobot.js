@@ -39,25 +39,29 @@ async function getPriceWithDollar(symbol) {
     };
 }
 
-// دریافت لیست نمادها
-async function getSymbolsListMessage() {
-    try {
-        const response = await axios.get("https://api.nobitex.ir/market/coins");
-        const symbols = response.data.coins;
+// دریافت لیست نمادها از آرایه ثابت
+function getSymbolsListMessage() {
+    const symbols = [
+        { titleFa: "بیت‌کوین", symbol: "BTC" },
+        { titleFa: "اتریوم", symbol: "ETH" },
+        { titleFa: "تتر", symbol: "USDT" },
+        { titleFa: "ترون", symbol: "TRX" },
+        { titleFa: "دوج‌کوین", symbol: "DOGE" },
+        { titleFa: "ریپل", symbol: "XRP" },
+        { titleFa: "بایننس‌کوین", symbol: "BNB" },
+        { titleFa: "کاردانو", symbol: "ADA" },
+        { titleFa: "پولکادات", symbol: "DOT" },
+        { titleFa: "لایت‌کوین", symbol: "LTC" },
+        { titleFa: "شیبا", symbol: "SHIB" },
+        { titleFa: "آوالانچ", symbol: "AVAX" }
+    ];
 
-        let message = "📋 لیست نمادهای قابل معامله:\n\n";
+    let message = "📋 لیست نمادهای قابل معامله:\n\n";
+    symbols.forEach(({ titleFa, symbol }) => {
+        message += `✅ ${titleFa} (${symbol}IRT)\n`;
+    });
 
-        symbols.forEach((coin) => {
-            if (coin.tradePairs.includes("IRT")) {
-                message += `✅ ${coin.titleFa} (${coin.symbol}IRT)\n`;
-            }
-        });
-
-        return message;
-    } catch (error) {
-        console.error("خطا در دریافت لیست نمادها:", error.message);
-        return "❌ خطا در دریافت لیست نمادها. لطفاً بعداً دوباره امتحان کن.";
-    }
+    return message;
 }
 
 // هندل پیام‌ها
@@ -87,7 +91,7 @@ bot.on("text", async (msg) => {
     // لیست نمادها
     else if (userMessage === "📋 لیست نمادها") {
         notcontrollerMessage = false;
-        const list = await getSymbolsListMessage();
+        const list = getSymbolsListMessage(); // دیگه نیازی به await نیست چون async نیست
         bot.sendMessage(chatId, list);
     }
 
@@ -148,3 +152,4 @@ bot.on("text", async (msg) => {
         bot.sendMessage(chatId, '❗ دستور وارد شده قابل شناسایی نیست. لطفاً از منو استفاده کن یا یک نماد معتبر مثل BTCIRT وارد کن.');
     }
 });
+
