@@ -140,17 +140,22 @@ bot.on("text", async (msg) => {
       const percent = ((diff / valueBuy) * 100).toFixed(2);
       const status = diff >= 0 ? "📈 سود" : "📉 ضرر";
 
+      // محاسبه مقادیر به دلار و نمایش
+      const valueNowInDollar = (valueNow / await getPrice("USDTIRT")).toFixed(2);
+      const valueBuyInDollar = (valueBuy / await getPrice("USDTIRT")).toFixed(2);
+      const diffInDollar = (diff / await getPrice("USDTIRT")).toFixed(2);
+
       message += `🔸 ${item.symbol} | ${item.amount} واحد\n`;
-      message += `💰 فعلی: ${(valueNow / getPrice("USDTIRT")).toFixed(2)} دلار\n`;
-      message += `${status}: ${(diff / getPrice("USDTIRT")).toFixed(2)} دلار (${percent}%)\n\n`;
+      message += `💰 فعلی: ${valueNowInDollar} دلار\n`;
+      message += `${status}: ${diffInDollar} دلار (${percent}%)\n\n`;
     }
 
     const totalDiff = totalNow - totalBuy;
     const totalStatus = totalDiff >= 0 ? "📈 سود کلی" : "📉 ضرر کلی";
 
-    message += `🧮 مجموع فعلی: ${(totalNow / getPrice("USDTIRT")).toFixed(2)} دلار\n`;
-    message += `💸 مجموع خرید: ${(totalBuy / getPrice("USDTIRT")).toFixed(2)} دلار\n`;
-    message += `${totalStatus}: ${(totalDiff / getPrice("USDTIRT")).toFixed(2)} دلار`;
+    message += `🧮 مجموع فعلی: ${(totalNow / await getPrice("USDTIRT")).toFixed(2)} دلار\n`;
+    message += `💸 مجموع خرید: ${(totalBuy / await getPrice("USDTIRT")).toFixed(2)} دلار\n`;
+    message += `${totalStatus}: ${(totalDiff / await getPrice("USDTIRT")).toFixed(2)} دلار`;
 
     bot.sendMessage(chatId, message);
     return;
@@ -219,9 +224,5 @@ bot.on("text", async (msg) => {
     }
     return;
   }
-
-  // فرمان نامشخص
-  bot.sendMessage(chatId, "❗ دستور نامعتبره. لطفاً از منو استفاده کن.", {
-    reply_markup: mainKeyboard
-  });
 });
+
