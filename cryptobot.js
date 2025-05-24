@@ -7,12 +7,13 @@ const bot = new TelegramBot(token, { polling: true });
 let waitingForSymbol = {};
 let portfolios = {};
 let waitingForAdd = {};
+let waitingForChartSymbol = {}; // اضافه شد
 
 const mainKeyboard = {
   keyboard: [
     [{ text: "📋 لیست نمادها" }, { text: "🔎 جستجوی نماد" }],
     [{ text: "➕ افزودن دارایی" }, { text: "📊 سبد سرمایه" }],
-    [{ text: "🔄 ریفرش سبد" }],
+    [{ text: "🔄 ریفرش سبد" }, { text: "📈 نمایش چارت" }], // اضافه شد
     [{ text: "💰 بیت‌کوین" }, { text: "💰 اتریوم" }],
     [{ text: "💰 تتر" }, { text: "💰 ترون" }],
     [{ text: "💰 دوج‌کوین" }, { text: "💰 ریپل" }],
@@ -96,21 +97,6 @@ const symbolsMap = {
   "💰 بایننس‌کوین": "BNBUSDT"
 };
 
-// تابع جدید برای گرفتن لینک نمودار روند قیمت
-async function getChartUrl(symbol) {
-  try {
-    symbol = normalizeSymbol(symbol);
-    // API نوبیتکس یک لینک ساده برای نمودار UDF یا مشابه نداره ولی خود API تاریخچه داره
-    // ما از تاریخچه قیمت استفاده میکنیم تا نمودار ساده بسازیم اما برای ربات بهتره از یک سرویس نمودار آنلاین استفاده کنیم
-    // اینجا یه لینک ساده نمونه میذاریم (شبیه TradingView) فقط نمایش
-    // https://charts.nobitex.ir/chart?symbol=BTCUSDT
-    // یا میتونیم لینک رو مستقیم به ربات بدیم:
-    return `https://charts.nobitex.ir/chart?symbol=${symbol}`;
-  } catch {
-    return null;
-  }
-}
-
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
   const userMessage = msg.text;
@@ -139,7 +125,7 @@ bot.on("text", async (msg) => {
     bot.sendMessage(chatId, "🔹 مرحله ۱: لطفاً نماد رو وارد کن (مثلاً: BTCUSD)");
     return;
   }
-  
+
   if (userMessage === "🔄 ریفرش سبد") {
     if (portfolios[chatId]) {
       portfolios[chatId] = []; // خالی کردن سبد سرمایه کاربر
@@ -177,15 +163,7 @@ bot.on("text", async (msg) => {
 
       message += `🔸 ${item.symbol} | ${item.amount} واحد\n`;
       message += `💰 فعلی: ${valueNow.toFixed(2)} دلار\n`;
-      message += `${status}: ${diff.toFixed(2)} دلار (${percent}%)\n`;
-
-      // اضافه کردن دکمه نمودار روند قیمت
-      const chartUrl = await getChartUrl(item.symbol);
-      if (chartUrl) {
-        message += `[📈 نمودار روند قیمت](${chartUrl})\n\n`;
-      } else {
-        message += "\n";
-      }
+      message += `${status}: ${diff.toFixed(2)} دلار (${percent}%)\n\n`;
 
       totalNow += valueNow;
       totalBuy += valueBuy;
@@ -203,7 +181,29 @@ bot.on("text", async (msg) => {
     message += `💸 مجموع خرید: ${totalBuy.toFixed(2)} دلار\n`;
     message += `${totalStatus}: ${totalDiff.toFixed(2)} دلار`;
 
-    bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
+    bot.sendMessage(chatId, message);
+    return;
+  }
+
+  if (userMessage === "📈 نمایش چارت") {
+    waitingForChartSymbol[chatId] = true;
+    bot.sendMessage(chatId, "📈 لطفاً نماد مورد نظر برای نمایش چارت را وارد کنید (مثلاً BTCUSDT)");
+    return;
+  }
+
+  if (waitingForChartSymbol[chatId]) {
+    let symbol = userMessage.toLowerCase();
+    if (!symbol.endsWith("_usdt")) {
+      // اگر usdt آخر نماد نیست، اضافه کن به شکل استاندارد lbank
+      if (symbol.endsWith("usdt")) {
+        symbol = symbol.replace(/usdt$/, '') + "_usdt";
+      } else {
+        symbol += "_usdt";
+      }
+    }
+    const url = `https://www.lbank.info/exchange/${symbol}`;
+    bot.sendMessage(chatId, `📈 نمودار روند قیمت ${userMessage.toUpperCase()}:\n${url}`);
+    waitingForChartSymbol[chatId] = false;
     return;
   }
 
@@ -266,9 +266,9 @@ bot.on("text", async (msg) => {
     } else {
       bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
     }
-    return;
+    return; // ← مهم: اینجا هم return بگذار
   }
 
-  // پیام خطا اگر ورودی نامعتبر بود
+  // فقط در صورتی که هیچکدام از موارد بالا اجرا نشد، پیام خطا بده
   bot.sendMessage(chatId, "❌ پیام شما نامعتبر است. لطفاً از دکمه‌ها استفاده کنید یا طبق دستورالعمل عمل نمایید.");
 });
