@@ -1,4 +1,4 @@
-const token = 'توکن خود را اینجا وارد کنید';
+const token = ' 7892178079:AAFpdGBprjs378rXa5KK1swzfsxYj0ypy18';
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
