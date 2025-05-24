@@ -108,44 +108,53 @@ bot.on("text", async (msg) => {
   }
 
   if (userMessage === "📊 سبد سرمایه") {
-    const userPortfolio = portfolios[chatId];
-    if (!userPortfolio || userPortfolio.length === 0) {
-      bot.sendMessage(chatId, "📭 سبد شما خالیه. از «➕ افزودن دارایی» استفاده کن.");
-      return;
-    }
-
-    let message = "📊 وضعیت سبد:\n\n";
-    let totalNow = 0;
-    let totalBuy = 0;
-
-    for (const item of userPortfolio) {
-      const priceNow = await getPrice(item.symbol);
-      if (!priceNow) continue;
-
-      const valueNow = item.amount * priceNow; // همه مقادیر دلار هستن
-      const valueBuy = item.amount * item.buyPrice;
-      const diff = valueNow - valueBuy;
-      const percent = ((diff / valueBuy) * 100).toFixed(2);
-      const status = diff >= 0 ? "📈 سود" : "📉 ضرر";
-
-      message += `🔸 ${item.symbol} | ${item.amount} واحد\n`;
-      message += `💰 فعلی: ${valueNow.toFixed(2)} دلار\n`;
-      message += `${status}: ${diff.toFixed(2)} دلار (${percent}%)\n\n`;
-
-      totalNow += valueNow;
-      totalBuy += valueBuy;
-    }
-
-    const totalDiff = totalNow - totalBuy;
-    const totalStatus = totalDiff >= 0 ? "📈 سود کلی" : "📉 ضرر کلی";
-
-    message += `🧮 مجموع فعلی: ${totalNow.toFixed(2)} دلار\n`;
-    message += `💸 مجموع خرید: ${totalBuy.toFixed(2)} دلار\n`;
-    message += `${totalStatus}: ${totalDiff.toFixed(2)} دلار`;
-
-    bot.sendMessage(chatId, message);
+  const userPortfolio = portfolios[chatId];
+  if (!userPortfolio || userPortfolio.length === 0) {
+    bot.sendMessage(chatId, "📭 سبد شما خالیه. از «➕ افزودن دارایی» استفاده کن.");
     return;
   }
+
+  let message = "📊 وضعیت سبد:\n\n";
+  let totalNow = 0;
+  let totalBuy = 0;
+
+  for (const item of userPortfolio) {
+    const priceNow = await getPrice(item.symbol);
+    if (!priceNow) {
+      bot.sendMessage(chatId, `❌ قیمت ${item.symbol} دریافت نشد!`);
+      continue;
+    }
+
+    const valueNow = item.amount * priceNow;
+    const valueBuy = item.amount * item.buyPrice;
+    const diff = valueNow - valueBuy;
+    const percent = ((diff / valueBuy) * 100).toFixed(2);
+    const status = diff >= 0 ? "📈 سود" : "📉 ضرر";
+
+    message += `🔸 ${item.symbol} | ${item.amount} واحد\n`;
+    message += `💰 فعلی: ${valueNow.toFixed(2)} دلار\n`;
+    message += `${status}: ${diff.toFixed(2)} دلار (${percent}%)\n\n`;
+
+    totalNow += valueNow;
+    totalBuy += valueBuy;
+  }
+
+  if (totalBuy === 0) {
+    bot.sendMessage(chatId, "❌ مجموع قیمت خرید صفر است. لطفاً دارایی‌ها را با قیمت خرید صحیح وارد کنید.");
+    return;
+  }
+
+  const totalDiff = totalNow - totalBuy;
+  const totalStatus = totalDiff >= 0 ? "📈 سود کلی" : "📉 ضرر کلی";
+
+  message += `🧮 مجموع فعلی: ${totalNow.toFixed(2)} دلار\n`;
+  message += `💸 مجموع خرید: ${totalBuy.toFixed(2)} دلار\n`;
+  message += `${totalStatus}: ${totalDiff.toFixed(2)} دلار`;
+
+  bot.sendMessage(chatId, message);
+  return;
+}
+
 
   if (waitingForSymbol[chatId]) {
     const symbol = userMessage.toUpperCase();
