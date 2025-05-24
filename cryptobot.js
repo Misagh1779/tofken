@@ -185,27 +185,21 @@ bot.on("text", async (msg) => {
     return;
   }
 
-  if (userMessage === "📈 نمایش چارت") {
-    waitingForChartSymbol[chatId] = true;
-    bot.sendMessage(chatId, "📈 لطفاً نماد مورد نظر برای نمایش چارت را وارد کنید (مثلاً BTCUSDT)");
-    return;
-  }
 
-  if (waitingForChartSymbol[chatId]) {
-    let symbol = userMessage.toLowerCase();
-    if (!symbol.endsWith("_usdt")) {
-      // اگر usdt آخر نماد نیست، اضافه کن به شکل استاندارد lbank
-      if (symbol.endsWith("usdt")) {
-        symbol = symbol.replace(/usdt$/, '') + "_usdt";
-      } else {
-        symbol += "_usdt";
-      }
-    }
-    const url = `https://www.lbank.info/exchange/${symbol}`;
-    bot.sendMessage(chatId, `📈 نمودار روند قیمت ${userMessage.toUpperCase()}:\n${url}`);
-    waitingForChartSymbol[chatId] = false;
-    return;
-  }
+if (userMessage === "📈 نمایش چارت") {
+  waitingForChartSymbol[chatId] = true;
+  bot.sendMessage(chatId, "📈 لطفاً نماد مورد نظر برای نمایش چارت را وارد کنید (مثلاً BTCUSDT)");
+  return;
+}
+
+if (waitingForChartSymbol[chatId]) {
+  let symbol = userMessage.toUpperCase();
+  const url = `https://www.tradingview.com/chart/?symbol=BINANCE:${symbol}`;
+  bot.sendMessage(chatId, `📈 نمودار روند قیمت ${symbol}:\n${url}`);
+  waitingForChartSymbol[chatId] = false;
+  return;
+}
+
 
   if (waitingForSymbol[chatId]) {
     const symbol = userMessage.toUpperCase();
