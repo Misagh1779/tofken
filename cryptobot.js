@@ -107,7 +107,14 @@ bot.on("text", async (msg) => {
     return;
   }
 
-  if (userMessage === "📊 سبد سرمایه") {
+  function normalizeSymbol(symbol) {
+  if (symbol.endsWith("USD") && !symbol.endsWith("USDT")) {
+    return symbol.slice(0, -3) + "USDT";
+  }
+  return symbol;
+}
+
+if (userMessage === "📊 سبد سرمایه") {
   const userPortfolio = portfolios[chatId];
   if (!userPortfolio || userPortfolio.length === 0) {
     bot.sendMessage(chatId, "📭 سبد شما خالیه. از «➕ افزودن دارایی» استفاده کن.");
@@ -119,9 +126,10 @@ bot.on("text", async (msg) => {
   let totalBuy = 0;
 
   for (const item of userPortfolio) {
-    const priceNow = await getPrice(item.symbol);
+    const normalizedSymbol = normalizeSymbol(item.symbol);
+    const priceNow = await getPrice(normalizedSymbol);
     if (!priceNow) {
-      bot.sendMessage(chatId, `❌ قیمت ${item.symbol} دریافت نشد!`);
+      bot.sendMessage(chatId, `❌ قیمت ${normalizedSymbol} دریافت نشد!`);
       continue;
     }
 
@@ -154,6 +162,7 @@ bot.on("text", async (msg) => {
   bot.sendMessage(chatId, message);
   return;
 }
+
 
 
   if (waitingForSymbol[chatId]) {
