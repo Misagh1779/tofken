@@ -47,10 +47,21 @@ async function getPrice(symbol) {
 async function getPriceWithDollar(symbol) {
   const dollarPrice = await getPrice(symbol);
   if (!dollarPrice) return null;
+
+  let formattedPrice;
+  if (dollarPrice >= 1) {
+    formattedPrice = dollarPrice.toFixed(2);
+  } else if (dollarPrice >= 0.01) {
+    formattedPrice = dollarPrice.toFixed(4);
+  } else {
+    formattedPrice = dollarPrice.toFixed(6);
+  }
+
   return {
-    dollar: dollarPrice.toFixed(2)
+    dollar: formattedPrice
   };
 }
+
 
 function getSymbolsListMessage() {
   const symbols = [
