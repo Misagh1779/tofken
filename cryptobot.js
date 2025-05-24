@@ -20,7 +20,7 @@ const mainKeyboard = {
   resize_keyboard: true
 };
 
-// ✅ توابع قیمت
+// دریافت قیمت نماد از nobitex
 async function getPrice(symbol) {
   try {
     const to = Math.floor(Date.now() / 1000);
@@ -37,6 +37,7 @@ async function getPrice(symbol) {
   return null;
 }
 
+// قیمت با دلار محاسبه شده
 async function getPriceWithDollar(symbol) {
   const tomanPrice = await getPrice(symbol);
   const dollarPrice = await getPrice("USDTIRT");
@@ -48,6 +49,7 @@ async function getPriceWithDollar(symbol) {
   };
 }
 
+// پیام لیست نمادها
 function getSymbolsListMessage() {
   const symbols = [
     { titleFa: "بیت‌کوین", symbol: "BTCIRT" },
@@ -70,7 +72,6 @@ function getSymbolsListMessage() {
   return message;
 }
 
-// ✅ نمادهای اصلاح‌شده
 const symbolsMap = {
   "💰 بیت‌کوین": "BTCIRT",
   "💰 اتریوم": "ETHIRT",
@@ -81,37 +82,37 @@ const symbolsMap = {
   "💰 بایننس‌کوین": "BNBIRT"
 };
 
-// ✅ پاسخ به پیام‌ها
+// پاسخ به پیام‌ها
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
   const userMessage = msg.text;
 
   if (userMessage === "/start") {
-    bot.sendMessage(chatId, "👋 به ربات قیمت ارز خوش آمدید!", { reply_markup: mainKeyboard });
+    await bot.sendMessage(chatId, "👋 به ربات قیمت ارز خوش آمدید!", { reply_markup: mainKeyboard });
     return;
   }
 
   if (userMessage === "📋 لیست نمادها") {
-    bot.sendMessage(chatId, getSymbolsListMessage());
+    await bot.sendMessage(chatId, getSymbolsListMessage());
     return;
   }
 
   if (userMessage === "🔎 جستجوی نماد") {
     waitingForSymbol[chatId] = true;
-    bot.sendMessage(chatId, "🔍 لطفاً نماد مورد نظر را وارد کنید (مثلاً ADAIRT)");
+    await bot.sendMessage(chatId, "🔍 لطفاً نماد مورد نظر را وارد کنید (مثلاً ADAUSD)");
     return;
   }
 
   if (userMessage === "➕ افزودن دارایی") {
     waitingForAdd[chatId] = { step: 1, data: {} };
-    bot.sendMessage(chatId, "🔹 مرحله ۱: لطفاً نماد را وارد کنید (مثلاً BTCIRT)");
+    await bot.sendMessage(chatId, "🔹 مرحله ۱: لطفاً نماد را وارد کنید (مثلاً BTCUSD)");
     return;
   }
 
   if (userMessage === "📊 سبد سرمایه") {
     const userPortfolio = portfolios[chatId];
     if (!userPortfolio || userPortfolio.length === 0) {
-      bot.sendMessage(chatId, "📭 سبد شما خالی است.");
+      await bot.sendMessage(chatId, "📭 سبد شما خالی است.");
       return;
     }
 
@@ -145,7 +146,7 @@ bot.on("text", async (msg) => {
     message += `💸 مجموع خرید: ${(totalBuy / dollarRate).toFixed(2)} دلار\n`;
     message += `${totalStatus}: ${(totalDiff / dollarRate).toFixed(2)} دلار`;
 
-    bot.sendMessage(chatId, message);
+    await bot.sendMessage(chatId, message);
     return;
   }
 
@@ -153,9 +154,9 @@ bot.on("text", async (msg) => {
     const symbol = userMessage.toUpperCase();
     const price = await getPriceWithDollar(symbol);
     if (price) {
-      bot.sendMessage(chatId, `💸 قیمت ${symbol}:\n💵 ${price.dollar} دلار`);
+      await bot.sendMessage(chatId, `💸 قیمت ${symbol}:\n💵 ${price.dollar} دلار`);
     } else {
-      bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
+      await bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
     }
     waitingForSymbol[chatId] = false;
     return;
@@ -168,20 +169,20 @@ bot.on("text", async (msg) => {
     if (step === 1) {
       data.symbol = userMessage.toUpperCase();
       waitingForAdd[chatId].step = 2;
-      bot.sendMessage(chatId, "🔹 مرحله ۲: مقدار دارایی را وارد کنید.");
+      await bot.sendMessage(chatId, "🔹 مرحله ۲: مقدار دارایی را وارد کنید.");
     } else if (step === 2) {
       const amount = parseFloat(userMessage);
       if (isNaN(amount)) {
-        bot.sendMessage(chatId, "❌ مقدار نامعتبر. لطفاً فقط عدد وارد کنید.");
+        await bot.sendMessage(chatId, "❌ مقدار نامعتبر. لطفاً فقط عدد وارد کنید.");
         return;
       }
       data.amount = amount;
       waitingForAdd[chatId].step = 3;
-      bot.sendMessage(chatId, "🔹 مرحله ۳: قیمت خرید هر واحد (به تومان) را وارد کنید.");
+      await bot.sendMessage(chatId, "🔹 مرحله ۳: قیمت خرید هر واحد (به تومان) را وارد کنید.");
     } else if (step === 3) {
       const price = parseFloat(userMessage);
       if (isNaN(price)) {
-        bot.sendMessage(chatId, "❌ قیمت نامعتبر. لطفاً فقط عدد وارد کنید.");
+        await bot.sendMessage(chatId, "❌ قیمت نامعتبر. لطفاً فقط عدد وارد کنید.");
         return;
       }
 
@@ -193,25 +194,24 @@ bot.on("text", async (msg) => {
         buyPrice: data.buyPrice
       });
 
-      bot.sendMessage(chatId, `✅ دارایی ثبت شد:\n${data.amount} ${data.symbol} با قیمت خرید ${data.buyPrice} تومان`);
+      await bot.sendMessage(chatId, `✅ دارایی ثبت شد:\n${data.amount} ${data.symbol} با قیمت خرید ${data.buyPrice} تومان`);
       waitingForAdd[chatId] = null;
     }
     return;
   }
 
-  // دکمه‌های آماده
   if (symbolsMap[userMessage]) {
     const symbol = symbolsMap[userMessage];
     const price = await getPriceWithDollar(symbol);
     if (price) {
-      bot.sendMessage(chatId, `💰 قیمت ${userMessage.replace("💰 ", "")}:\n💵 ${price.dollar} دلار`);
+      await bot.sendMessage(chatId, `💰 قیمت ${userMessage.replace("💰 ", "")}:\n💵 ${price.dollar} دلار`);
     } else {
-      bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
+      await bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
     }
-  return; // ← مهم: اینجا هم return بگذار
+    return;
   }
 
-  // فقط در صورتی که هیچکدام از موارد بالا اجرا نشد، پیام خطا بده
-  bot.sendMessage(chatId, "❌ پیام شما نامعتبر است. لطفاً از دکمه‌ها استفاده کنید یا طبق دستورالعمل عمل نمایید.");
+  // اگر پیام متفرقه بود این پیام خطا ارسال شود
+  await bot.sendMessage(chatId, "❌ پیام شما نامعتبر است. لطفاً از دکمه‌ها استفاده کنید یا طبق دستورالعمل عمل نمایید.");
 });
 
