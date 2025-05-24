@@ -209,5 +209,7 @@ bot.on("text", async (msg) => {
       bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
     }
   }
+  bot.sendMessage(chatId, "❌ پیام شما نامعتبر است. لطفاً از دکمه‌ها استفاده کنید یا طبق دستورالعمل عمل نمایید.");
+
 });
 
