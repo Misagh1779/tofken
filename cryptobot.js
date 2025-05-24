@@ -63,7 +63,6 @@ async function getPriceWithDollar(symbol) {
   };
 }
 
-
 function getSymbolsListMessage() {
   const symbols = [
     { titleFa: "بیت‌کوین", symbol: "BTCUSDT" },
@@ -97,6 +96,21 @@ const symbolsMap = {
   "💰 بایننس‌کوین": "BNBUSDT"
 };
 
+// تابع جدید برای گرفتن لینک نمودار روند قیمت
+async function getChartUrl(symbol) {
+  try {
+    symbol = normalizeSymbol(symbol);
+    // API نوبیتکس یک لینک ساده برای نمودار UDF یا مشابه نداره ولی خود API تاریخچه داره
+    // ما از تاریخچه قیمت استفاده میکنیم تا نمودار ساده بسازیم اما برای ربات بهتره از یک سرویس نمودار آنلاین استفاده کنیم
+    // اینجا یه لینک ساده نمونه میذاریم (شبیه TradingView) فقط نمایش
+    // https://charts.nobitex.ir/chart?symbol=BTCUSDT
+    // یا میتونیم لینک رو مستقیم به ربات بدیم:
+    return `https://charts.nobitex.ir/chart?symbol=${symbol}`;
+  } catch {
+    return null;
+  }
+}
+
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
   const userMessage = msg.text;
@@ -125,16 +139,16 @@ bot.on("text", async (msg) => {
     bot.sendMessage(chatId, "🔹 مرحله ۱: لطفاً نماد رو وارد کن (مثلاً: BTCUSD)");
     return;
   }
+  
   if (userMessage === "🔄 ریفرش سبد") {
-  if (portfolios[chatId]) {
-    portfolios[chatId] = []; // خالی کردن سبد سرمایه کاربر
-    bot.sendMessage(chatId, "✅ سبد سرمایه شما پاک شد. حالا می‌توانید دارایی‌های جدید را از «➕ افزودن دارایی» وارد کنید.");
-  } else {
-    bot.sendMessage(chatId, "📭 سبد شما خالی است.");
+    if (portfolios[chatId]) {
+      portfolios[chatId] = []; // خالی کردن سبد سرمایه کاربر
+      bot.sendMessage(chatId, "✅ سبد سرمایه شما پاک شد. حالا می‌توانید دارایی‌های جدید را از «➕ افزودن دارایی» وارد کنید.");
+    } else {
+      bot.sendMessage(chatId, "📭 سبد شما خالی است.");
+    }
+    return;
   }
-  return;
-}
-
 
   if (userMessage === "📊 سبد سرمایه") {
     const userPortfolio = portfolios[chatId];
@@ -163,7 +177,15 @@ bot.on("text", async (msg) => {
 
       message += `🔸 ${item.symbol} | ${item.amount} واحد\n`;
       message += `💰 فعلی: ${valueNow.toFixed(2)} دلار\n`;
-      message += `${status}: ${diff.toFixed(2)} دلار (${percent}%)\n\n`;
+      message += `${status}: ${diff.toFixed(2)} دلار (${percent}%)\n`;
+
+      // اضافه کردن دکمه نمودار روند قیمت
+      const chartUrl = await getChartUrl(item.symbol);
+      if (chartUrl) {
+        message += `[📈 نمودار روند قیمت](${chartUrl})\n\n`;
+      } else {
+        message += "\n";
+      }
 
       totalNow += valueNow;
       totalBuy += valueBuy;
@@ -181,7 +203,7 @@ bot.on("text", async (msg) => {
     message += `💸 مجموع خرید: ${totalBuy.toFixed(2)} دلار\n`;
     message += `${totalStatus}: ${totalDiff.toFixed(2)} دلار`;
 
-    bot.sendMessage(chatId, message);
+    bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
     return;
   }
 
@@ -244,9 +266,9 @@ bot.on("text", async (msg) => {
     } else {
       bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
     }
-      return; // ← مهم: اینجا هم return بگذار
+    return;
   }
 
-  // فقط در صورتی که هیچکدام از موارد بالا اجرا نشد، پیام خطا بده
+  // پیام خطا اگر ورودی نامعتبر بود
   bot.sendMessage(chatId, "❌ پیام شما نامعتبر است. لطفاً از دکمه‌ها استفاده کنید یا طبق دستورالعمل عمل نمایید.");
 });
