@@ -1,4 +1,4 @@
-const token = '7892178079:AAFpdGBprjs378rXa5KK1swzfsxYj0ypy18';
+const token = 'توکن خود را اینجا وارد کنید';
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
@@ -20,11 +20,10 @@ const mainKeyboard = {
   resize_keyboard: true
 };
 
-// تابع برای دریافت قیمت یک نماد
 async function getPrice(symbol) {
   try {
     const to = Math.floor(Date.now() / 1000);
-    const from = to - 86400; // قیمت روز گذشته
+    const from = to - 86400;
     const response = await axios.get(`https://api.nobitex.ir/market/udf/history?symbol=${encodeURIComponent(symbol)}&resolution=D&from=${from}&to=${to}`);
     if (response.data.s === 'ok') {
       const prices = response.data.c;
@@ -36,21 +35,18 @@ async function getPrice(symbol) {
   return null;
 }
 
-// تابع برای دریافت قیمت به دلار
 async function getPriceWithDollar(symbol) {
   const tomanPrice = await getPrice(symbol);
   const dollarPrice = await getPrice("USDTIRT");
 
   if (!tomanPrice || !dollarPrice) return null;
 
-  const inDollar = (tomanPrice / dollarPrice).toFixed(2);
   return {
     toman: tomanPrice.toLocaleString("fa-IR"),
-    dollar: inDollar
+    dollar: (tomanPrice / dollarPrice).toFixed(2)
   };
 }
 
-// لیست نمادهای قابل معامله
 function getSymbolsListMessage() {
   const symbols = [
     { titleFa: "بیت‌کوین", symbol: "BTC" },
@@ -84,7 +80,6 @@ const symbolsMap = {
   "💰 بایننس‌کوین": "BNBUSD"
 };
 
-// شروع کار با ربات
 bot.on("text", async (msg) => {
   const chatId = msg.chat.id;
   const userMessage = msg.text;
@@ -97,7 +92,6 @@ bot.on("text", async (msg) => {
     return;
   }
 
-  // دکمه‌های منو
   if (userMessage === "📋 لیست نمادها") {
     bot.sendMessage(chatId, getSymbolsListMessage());
     return;
@@ -122,6 +116,7 @@ bot.on("text", async (msg) => {
       return;
     }
 
+    const dollarRate = await getPrice("USDTIRT");
     let message = "📊 وضعیت سبد:\n\n";
     let totalNow = 0;
     let totalBuy = 0;
@@ -132,36 +127,29 @@ bot.on("text", async (msg) => {
 
       const valueNow = item.amount * priceNow;
       const valueBuy = item.amount * item.buyPrice;
-
-      totalNow += valueNow;
-      totalBuy += valueBuy;
-
       const diff = valueNow - valueBuy;
       const percent = ((diff / valueBuy) * 100).toFixed(2);
       const status = diff >= 0 ? "📈 سود" : "📉 ضرر";
 
-     // محاسبه مقادیر به دلار و نمایش
-      const valueNowInDollar = (valueNow / await getPrice("USDTIRT")).toFixed(2);
-      const valueBuyInDollar = (valueBuy / await getPrice("USDTIRT")).toFixed(2);
-      const diffInDollar = (diff / await getPrice("USDTIRT")).toFixed(2);
-
       message += `🔸 ${item.symbol} | ${item.amount} واحد\n`;
-      message += `💰 فعلی: ${valueNowInDollar} دلار\n`;
-      message += `${status}: ${diffInDollar} دلار (${percent}%)\n\n`;
+      message += `💰 فعلی: ${(valueNow / dollarRate).toFixed(2)} دلار\n`;
+      message += `${status}: ${(diff / dollarRate).toFixed(2)} دلار (${percent}%)\n\n`;
+
+      totalNow += valueNow;
+      totalBuy += valueBuy;
     }
 
     const totalDiff = totalNow - totalBuy;
     const totalStatus = totalDiff >= 0 ? "📈 سود کلی" : "📉 ضرر کلی";
 
-    message += `🧮 مجموع فعلی: ${(totalNow / await getPrice("USDTIRT")).toFixed(2)} دلار\n`;
-    message += `💸 مجموع خرید: ${(totalBuy / await getPrice("USDTIRT")).toFixed(2)} دلار\n`;
-    message += `${totalStatus}: ${(totalDiff / await getPrice("USDTIRT")).toFixed(2)} دلار`;
+    message += `🧮 مجموع فعلی: ${(totalNow / dollarRate).toFixed(2)} دلار\n`;
+    message += `💸 مجموع خرید: ${(totalBuy / dollarRate).toFixed(2)} دلار\n`;
+    message += `${totalStatus}: ${(totalDiff / dollarRate).toFixed(2)} دلار`;
 
     bot.sendMessage(chatId, message);
     return;
   }
 
-  // جستجوی نماد
   if (waitingForSymbol[chatId]) {
     const symbol = userMessage.toUpperCase();
     const price = await getPriceWithDollar(symbol);
@@ -174,7 +162,6 @@ bot.on("text", async (msg) => {
     return;
   }
 
-  // مراحل افزودن دارایی
   if (waitingForAdd[chatId]) {
     const step = waitingForAdd[chatId].step;
     const data = waitingForAdd[chatId].data;
@@ -184,47 +171,43 @@ bot.on("text", async (msg) => {
       waitingForAdd[chatId].step = 2;
       bot.sendMessage(chatId, "🔹 مرحله ۲: تعداد دارایی رو وارد کن (مثلاً: 0.5)");
     } else if (step === 2) {
-  const amount = parseFloat(userMessage);
-  if (isNaN(amount)) {
-    bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
-    return;
-  }
-  data.amount = amount;
-  waitingForAdd[chatId].step = 3;
-  bot.sendMessage(chatId, "🔹 مرحله ۳: قیمت خرید هر واحد رو وارد کن (دلار)");
-} else if (step === 3) {
-  const price = parseFloat(userMessage); // تبدیل به عدد اعشاری
-  if (isNaN(price)) {
-    bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
-    return;
-  }
-  data.buyPrice = price; // قیمت به دلار وارد می‌شود
+      const amount = parseFloat(userMessage);
+      if (isNaN(amount)) {
+        bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
+        return;
+      }
+      data.amount = amount;
+      waitingForAdd[chatId].step = 3;
+      bot.sendMessage(chatId, "🔹 مرحله ۳: قیمت خرید هر واحد رو وارد کن (دلار)");
+    } else if (step === 3) {
+      const price = parseFloat(userMessage);
+      if (isNaN(price)) {
+        bot.sendMessage(chatId, "❌ عدد وارد نشده. لطفاً فقط عدد وارد کن.");
+        return;
+      }
 
-  // ذخیره کردن دارایی با قیمت خرید به دلار
-  if (!portfolios[chatId]) portfolios[chatId] = [];
-  portfolios[chatId].push({
-    symbol: data.symbol,
-    amount: data.amount,
-    buyPrice: data.buyPrice,  // قیمت خرید به دلار
-    buyPriceInDollar: data.buyPrice.toFixed(2) // قیمت خرید به دلار
-  });
+      data.buyPrice = price;
 
-  bot.sendMessage(chatId, `✅ دارایی ${data.amount} ${data.symbol} با قیمت خرید ${data.buyPrice.toFixed(2)} دلار ثبت شد.`);
-  waitingForAdd[chatId] = null;
-}
+      if (!portfolios[chatId]) portfolios[chatId] = [];
+      portfolios[chatId].push({
+        symbol: data.symbol,
+        amount: data.amount,
+        buyPrice: data.buyPrice
+      });
 
+      bot.sendMessage(chatId, `✅ دارایی ${data.amount} ${data.symbol} با قیمت خرید ${data.buyPrice.toFixed(2)} دلار ثبت شد.`);
+      waitingForAdd[chatId] = null;
+    }
     return;
   }
 
   if (symbolsMap[userMessage]) {
     const symbol = symbolsMap[userMessage];
     const price = await getPriceWithDollar(symbol);
-
     if (price) {
       bot.sendMessage(chatId, `💰 قیمت ${userMessage.replace("💰 ", "")}:\n💵 ${price.dollar} دلار`);
     } else {
       bot.sendMessage(chatId, `❌ قیمت ${symbol} پیدا نشد.`);
     }
-    return;
   }
 });
