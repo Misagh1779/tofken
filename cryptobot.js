@@ -69,19 +69,19 @@ function getSymbolsListMessage() {
 
   let message = "📋 لیست نمادهای قابل معامله:\n\n";
   symbols.forEach(({ titleFa, symbol }) => {
-    message += `✅ ${titleFa} (${symbol}IRT)\n`;
+    message += `✅ ${titleFa} (${symbol}USD)\n`;
   });
   return message;
 }
 
 const symbolsMap = {
-  "💰 بیت‌کوین": "BTCIRT",
-  "💰 اتریوم": "ETHIRT",
-  "💰 تتر": "USDTIRT",
-  "💰 ترون": "TRXIRT",
-  "💰 دوج‌کوین": "DOGEIRT",
-  "💰 ریپل": "XRPIRT",
-  "💰 بایننس‌کوین": "BNBIRT"
+  "💰 بیت‌کوین": "BTCUSD",
+  "💰 اتریوم": "ETHUSD",
+  "💰 تتر": "USDTUSD",
+  "💰 ترون": "TRXUSD",
+  "💰 دوج‌کوین": "DOGEUSD",
+  "💰 ریپل": "XRPUSD",
+  "💰 بایننس‌کوین": "BNBUSD"
 };
 
 // شروع کار با ربات
